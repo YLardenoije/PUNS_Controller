@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+service testGRPC {
+    rpc setStatus(Status) returns (google.protobuf.Empty) {}
+    rpc displayLaunchPower(LaunchPower) returns (google.protobuf.Empty) {}
+    rpc showGameOver(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+    rpc showHighScores(HighscoreList) returns (google.protobuf.Empty) {}
+    
+}
+
+message LaunchPower {
+    float power = 1;
+}
+
+message Score {
+    int32 count = 1;
+}
+
+message User {
+    string name = 1;
+}
+
+message Status {
+    Score score = 1;
+    int32 ballsLeft = 2;
+}
+
+message HighScore {
+    User user = 1;
+    Score score = 2;
+}
+
+message HighscoreList {
+    repeated HighScore scores = 1;
+}
