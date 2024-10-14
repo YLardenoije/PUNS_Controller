@@ -7,7 +7,7 @@ service testGRPC {
     rpc displayLaunchPower(LaunchPower) returns (google.protobuf.Empty) {}
     rpc showGameOver(google.protobuf.Empty) returns (google.protobuf.Empty) {}
     rpc showHighScores(HighscoreList) returns (google.protobuf.Empty) {}
-    
+    rpc startGame(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
 message LaunchPower {
