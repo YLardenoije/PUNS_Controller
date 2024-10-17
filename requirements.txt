@@ -1,0 +1,6 @@
+grpcio==1.66.2
+grpcio-tools==1.66.2
+numpy==1.24.4
+opencv-python==4.10.0.84
+protobuf==5.28.2
+pyserial==3.5
