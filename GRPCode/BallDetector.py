@@ -1,8 +1,13 @@
 import cv2
 import numpy as np
 
+ballMissingFrameThreshold = 50
+
 class BallDetector:
-    def __init__(self, video_source=0):
+    def __init__(self, video_source=1):
+        self.running = True
+        self.ballMissFrame = 0
+        self.ballMissing = False
         self.video_source = video_source
         self.cap = cv2.VideoCapture(video_source, cv2.CAP_DSHOW)
         if not self.cap.isOpened():
@@ -29,7 +34,7 @@ class BallDetector:
         cv2.imshow('gray', Sat)
         cv2.imshow('subtractedINV', subtractedImageInverted)
 
-        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT, 1.4, rows / 8, param1=300, param2=0.9, minRadius=1, maxRadius=400)
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT, 1.4, rows / 8, param1=300, param2=0.9, minRadius=20, maxRadius=400)
         imageCopy = image.copy()
         if circles is not None:
             circles = np.uint16(np.around(circles))
@@ -38,7 +43,11 @@ class BallDetector:
                 cv2.circle(imageCopy, center, 1, (0, 100, 100), 3)
                 radius = i[2]
                 cv2.circle(imageCopy, center, radius, (255, 0, 255), 3)
-        return imageCopy
+
+        if (circles is not None):
+            return imageCopy, len(circles)
+        else:
+            return imageCopy, 0
     
     def DetectBlobs(self, image):
         subtractedImage = cv2.subtract(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), self.maskImageGray)
@@ -57,35 +66,32 @@ class BallDetector:
         imageCopy = cv2.drawKeypoints(subtractedImage, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         return imageCopy
     def detect_ball(self):
-        while True:
+        while self.running:
             ret, frame = self.cap.read()
             if not ret:
                 print("Failed to grab frame")
                 break
 
-            annotatedFrame = self.DetectCircle(frame)
-            #self.maskImageGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            # hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-            # lower_bound = np.array([30, 150, 50])
-            # upper_bound = np.array([255, 255, 180])
-            # mask = cv2.inRange(hsv, lower_bound, upper_bound)
-            # res = cv2.bitwise_and(frame, frame, mask=mask)
+            newFrame, circlecount = self.DetectCircle(frame)
 
-            # contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-            # for contour in contours:
-            #     area = cv2.contourArea(contour)
-            #     if area > 500:
-            #         x, y, w, h = cv2.boundingRect(contour)
-            #         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            if annotatedFrame is not None:
-                cv2.imshow('GoodFrame', annotatedFrame)
+            if newFrame is not None:
+                cv2.imshow('GoodFrame', newFrame)
             else:
                 cv2.imshow('Frame', frame)
-            # cv2.imshow('Mask', mask)
-            # cv2.imshow('Result', res)
+
+            if circlecount > 0:
+                self.ballMissFrame = 0
+            else:
+                self.ballMissFrame += 1
+
+            if self.ballMissFrame >= ballMissingFrameThreshold:
+                self.ballMissing = True
+            else:
+                self.ballMissing = False
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+            
         self.cap.release()
         cv2.destroyAllWindows()
 
