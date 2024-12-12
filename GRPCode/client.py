@@ -102,7 +102,7 @@ class pinballStateMachine():
             if self.status.ballsLeft == 0:
                 newState = pinballState.GAMEOVER
                 self.stub.showGameOver(empty.Empty())
-                threading.Timer(10, self.queueEvent, [pinballEvent.TIMER_TIMEOUT], {}).start()
+                threading.Timer(5, self.queueEvent, [pinballEvent.TIMER_TIMEOUT], {}).start()
             else:
                 self.status.ballsLeft -= 1
                 self.sendUpdate()
@@ -114,8 +114,9 @@ class pinballStateMachine():
                 threading.Timer(3, self.queueEvent, [pinballEvent.BALL_LAUNCHED], {}).start()
 
         elif event == pinballEvent.BUMPER_HIT:
-            self.status.score.count += 100
+            self.status.score.count += 10
             self.sendUpdate()
+            threading.Timer(1, self.queueEvent, [pinballEvent.BUMPER_HIT], {}).start()
 
         return newState
 
@@ -148,6 +149,7 @@ class pinballStateMachine():
             self.container.launcher.High()
             time.sleep(0.1)
             self.container.launcher.Low()
+            self.queueEvent(pinballEvent.BUMPER_HIT)
         return newState
 
     def processLaunching(self):
